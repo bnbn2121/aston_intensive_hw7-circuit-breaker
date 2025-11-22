@@ -23,38 +23,20 @@ public class CircuitBreakerService {
     }
 
     public Object forwardRequest(String path, HttpMethod method, Object body) {
-        // Проверяем состояние Circuit Breaker перед вызовом
         if (circuitBreaker.getState() == CircuitBreaker.State.OPEN) {
             return Map.of("Circuit Breaker warning", "Service unavailable");
         }
 
-        // Создаем supplier для вызова сервиса
         Supplier<Object> serviceCall = () -> webClient.method(method)
                 .uri(serviceUrl + path)
                 .bodyValue(body != null ? body : "")
                 .retrieve()
                 .bodyToMono(Object.class)
                 .block();
-
         try {
             return circuitBreaker.executeSupplier(serviceCall);
         } catch (Exception e) {
             return e.getMessage();
         }
-    }
-
-    private Object getOpenStateFallbackResponse() {
-        return Map.of(
-                "Circuit Breaker warning", "Service unavailable",
-                "status", "circuit_breaker_open",
-                "message", "Service is temporarily unavailable due to high error rate"
-        );
-    }
-
-    private Object getExceptionFallbackResponse(Throwable throwable) {
-        return Map.of(
-                "error", "Service call failed",
-                "message", "Unable to process request at this time"
-        );
     }
 }

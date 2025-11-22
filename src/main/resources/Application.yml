@@ -1,5 +1,0 @@
-spring:
-  application:
-    name: circuit-breaker
-  config:
-    import: "configserver:http://${CONFIG.SERVER.HOST:localhost}:8888"
